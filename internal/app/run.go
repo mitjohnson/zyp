@@ -10,17 +10,17 @@ import (
 	"zyp/internal/provider"
 )
 
-func discoverTargets(ctx context.Context, providers []provider.Provider) []provider.Target {
-	var targets []provider.Target
+func DiscoverAllTargets(ctx context.Context, providers []provider.Provider) map[string][]provider.Target {
+	results := map[string][]provider.Target{}
 	for _, p := range providers {
-		found, err := p.Discover(ctx)
+		targets, err := p.Discover(ctx)
 		if err != nil {
-			slog.Warn("provider discovery failed", "error", err)
+			slog.Warn("provider discovery failed", "provider", p)
 			continue
 		}
-		targets = append(targets, found...)
+		results[p.Name()] = targets
 	}
-	return targets
+	return results
 }
 
 func collectDumps(ctx context.Context, targets []provider.Target) []collector.Dump {
@@ -76,7 +76,11 @@ func backupGroups(ctx context.Context, groups map[string][]collector.Dump, cfg c
 }
 
 func Run(ctx context.Context, cfg config.Config, providers []provider.Provider) error {
-	targets := discoverTargets(ctx, providers)
+	var targets []provider.Target
+	for _, discovered := range DiscoverAllTargets(ctx, providers) {
+		targets = append(targets, discovered...)
+	}
+
 	dumps := collectDumps(ctx, targets)
 
 	if len(dumps) == 0 {

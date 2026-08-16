@@ -22,7 +22,7 @@ var backupCmd = &cobra.Command{
 		}
 
 		ctx := cmd.Context()
-		providers := buildProviders(ctx, cfg)
+		providers := app.BuildProviders(ctx, cfg)
 
 		return app.Run(ctx, cfg, providers)
 	},

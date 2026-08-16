@@ -1,4 +1,4 @@
-package cli
+package app
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"zyp/internal/provider"
 )
 
-func buildProviders(ctx context.Context, cfg config.Config) []provider.Provider {
+func BuildProviders(ctx context.Context, cfg config.Config) []provider.Provider {
 	var providers []provider.Provider
 
 	for name, rawCfg := range cfg.Providers {

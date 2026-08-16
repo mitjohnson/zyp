@@ -3,12 +3,11 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 
 	"github.com/spf13/cobra"
 
+	"zyp/internal/app"
 	"zyp/internal/config"
-	"zyp/internal/provider"
 )
 
 var discoverCmd = &cobra.Command{
@@ -21,23 +20,10 @@ var discoverCmd = &cobra.Command{
 		}
 
 		ctx := cmd.Context()
-		providers := buildProviders(ctx, cfg)
+		providers := app.BuildProviders(ctx, cfg)
+		discovered := app.DiscoverAllTargets(ctx, providers)
 
-		results := map[string][]provider.Target{}
-		for _, p := range providers {
-			targets, err := p.Discover(ctx)
-			if err != nil {
-				slog.Warn("discover failed", "provider", p.Name(), "error", err)
-				continue
-			}
-
-			if targets == nil {
-				targets = []provider.Target{}
-			}
-			results[p.Name()] = targets
-		}
-
-		data, err := json.MarshalIndent(results, "", "  ")
+		data, err := json.MarshalIndent(discovered, "", "  ")
 		if err != nil {
 			return fmt.Errorf("format results: %w", err)
 		}
