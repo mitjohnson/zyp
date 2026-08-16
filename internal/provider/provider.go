@@ -14,6 +14,8 @@ type Target struct {
 	Name         string
 	Kind         Kind
 	Source       string
+	Repository   string
+	Compress     bool
 	ContainerRef string
 	Labels       map[string]string
 }

@@ -39,7 +39,7 @@ func TestDockerProvider(t *testing.T) {
 				{
 					Names:  []string{"/my-container"},
 					ID:     "1234567890",
-					Labels: map[string]string{"backup.enable": "false", "backup.kind": "postgres"},
+					Labels: map[string]string{"zyp.enable": "false", "zyp.kind": "postgres"},
 				},
 			},
 			wantErr: false,
@@ -55,7 +55,7 @@ func TestDockerProvider(t *testing.T) {
 				{
 					Names:  []string{"/my-container"},
 					ID:     "1234567890",
-					Labels: map[string]string{"backup.enable": "true", "backup.kind": "postgres"},
+					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 			},
 			wantTargets: []provider.Target{
@@ -63,7 +63,7 @@ func TestDockerProvider(t *testing.T) {
 					Name:         "my-container",
 					ContainerRef: "1234567890",
 					Kind:         provider.KindPostgres,
-					Labels:       map[string]string{"backup.enable": "true", "backup.kind": "postgres"},
+					Labels:       map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 			},
 			wantErr: false,
@@ -74,7 +74,7 @@ func TestDockerProvider(t *testing.T) {
 				{
 					Names:  []string{"my-container"},
 					ID:     "1234567890",
-					Labels: map[string]string{"backup.enable": "true", "backup.kind": "postgres"},
+					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 			},
 			wantTargets: []provider.Target{
@@ -82,7 +82,7 @@ func TestDockerProvider(t *testing.T) {
 					Name:         "my-container",
 					ContainerRef: "1234567890",
 					Kind:         provider.KindPostgres,
-					Labels:       map[string]string{"backup.enable": "true", "backup.kind": "postgres"},
+					Labels:       map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 			},
 			wantErr: false,
@@ -93,17 +93,17 @@ func TestDockerProvider(t *testing.T) {
 				{
 					Names:  []string{"/my-container"},
 					ID:     "1234567890",
-					Labels: map[string]string{"backup.enable": "true", "backup.kind": "invalid-kind"},
+					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "invalid-kind"},
 				},
 				{
 					Names:  []string{"/my-container-2"},
 					ID:     "0987654321",
-					Labels: map[string]string{"backup.enable": "true"},
+					Labels: map[string]string{"zyp.enable": "true"},
 				},
 				{
 					Names:  []string{"/my-container-3"},
 					ID:     "1122334455",
-					Labels: map[string]string{"backup.enable": "true", "backup.kind": "postgres"},
+					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 			},
 			wantTargets: []provider.Target{
@@ -111,7 +111,7 @@ func TestDockerProvider(t *testing.T) {
 					Name:         "my-container-3",
 					ContainerRef: "1122334455",
 					Kind:         provider.KindPostgres,
-					Labels:       map[string]string{"backup.enable": "true", "backup.kind": "postgres"},
+					Labels:       map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 			},
 			wantErr: false,
@@ -122,12 +122,12 @@ func TestDockerProvider(t *testing.T) {
 				{
 					Names:  []string{"/my-container"},
 					ID:     "1234567890",
-					Labels: map[string]string{"backup.enable": "true", "backup.kind": "postgres"},
+					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 				{
 					Names:  []string{"/my-container-2"},
 					ID:     "0987654321",
-					Labels: map[string]string{"backup.enable": "true", "backup.kind": "sqlite", "backup.path": "/data/db.sqlite"},
+					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "sqlite", "zyp.path": "/data/db.sqlite"},
 					Mounts: []container.MountPoint{
 						{
 							Destination: "/data",
@@ -138,7 +138,7 @@ func TestDockerProvider(t *testing.T) {
 				{
 					Names:  []string{"/my-container-3"},
 					ID:     "1122334455",
-					Labels: map[string]string{"backup.enable": "true"},
+					Labels: map[string]string{"zyp.enable": "true"},
 				},
 			},
 			wantTargets: []provider.Target{
@@ -146,13 +146,13 @@ func TestDockerProvider(t *testing.T) {
 					Name:         "my-container",
 					ContainerRef: "1234567890",
 					Kind:         provider.KindPostgres,
-					Labels:       map[string]string{"backup.enable": "true", "backup.kind": "postgres"},
+					Labels:       map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 				{
 					Name:         "my-container-2",
 					ContainerRef: "0987654321",
 					Kind:         provider.KindSQLite,
-					Labels:       map[string]string{"backup.enable": "true", "backup.kind": "sqlite", "backup.path": "/data/db.sqlite"},
+					Labels:       map[string]string{"zyp.enable": "true", "zyp.kind": "sqlite", "zyp.path": "/data/db.sqlite"},
 					Source:       "/mnt/data/db.sqlite",
 				},
 			},
