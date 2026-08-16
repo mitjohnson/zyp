@@ -22,8 +22,8 @@ func TestParseLabels(t *testing.T) {
 
 	t.Run("unknown backup.kind errors", func(t *testing.T) {
 		_, ok, err := parseLabels("test-container", "test-id", map[string]string{
-			"backup.enable": "true",
-			"backup.kind":   "mongodb",
+			"zyp.enable": "true",
+			"zyp.kind":   "mongodb",
 		}, nil)
 		if ok {
 			t.Errorf("ok = %v, want false", ok)
@@ -45,8 +45,8 @@ func TestParseLabels(t *testing.T) {
 			{
 				name: "missing backup.path errors",
 				labels: map[string]string{
-					"backup.enable": "true",
-					"backup.kind":   "sqlite",
+					"zyp.enable": "true",
+					"zyp.kind":   "sqlite",
 				},
 				wantOk:  false,
 				wantErr: true,
@@ -54,9 +54,9 @@ func TestParseLabels(t *testing.T) {
 			{
 				name: "resolves host path via matching mount",
 				labels: map[string]string{
-					"backup.enable": "true",
-					"backup.kind":   "sqlite",
-					"backup.path":   "/data/db.sqlite3",
+					"zyp.enable": "true",
+					"zyp.kind":   "sqlite",
+					"zyp.path":   "/data/db.sqlite3",
 				},
 				mounts: []container.MountPoint{
 					{Destination: "/data", Source: "/srv/prod/vaultwarden/data"},
@@ -68,19 +68,19 @@ func TestParseLabels(t *testing.T) {
 					Source:       "/srv/prod/vaultwarden/data/db.sqlite3",
 					ContainerRef: "test-id",
 					Labels: map[string]string{
-						"backup.enable": "true",
-						"backup.kind":   "sqlite",
-						"backup.path":   "/data/db.sqlite3",
+						"zyp.enable": "true",
+						"zyp.kind":   "sqlite",
+						"zyp.path":   "/data/db.sqlite3",
 					},
 				},
 			},
 			{
-				name: "backup.name overrides container name",
+				name: "zyp.name overrides container name",
 				labels: map[string]string{
-					"backup.enable": "true",
-					"backup.kind":   "sqlite",
-					"backup.path":   "/data/db.sqlite3",
-					"backup.name":   "vaultwarden-db",
+					"zyp.enable": "true",
+					"zyp.kind":   "sqlite",
+					"zyp.path":   "/data/db.sqlite3",
+					"zyp.name":   "vaultwarden-db",
 				},
 				mounts: []container.MountPoint{
 					{Destination: "/data", Source: "/srv/prod/vaultwarden/data"},
@@ -92,19 +92,19 @@ func TestParseLabels(t *testing.T) {
 					Source:       "/srv/prod/vaultwarden/data/db.sqlite3",
 					ContainerRef: "test-id",
 					Labels: map[string]string{
-						"backup.enable": "true",
-						"backup.kind":   "sqlite",
-						"backup.path":   "/data/db.sqlite3",
-						"backup.name":   "vaultwarden-db",
+						"zyp.enable": "true",
+						"zyp.kind":   "sqlite",
+						"zyp.path":   "/data/db.sqlite3",
+						"zyp.name":   "vaultwarden-db",
 					},
 				},
 			},
 			{
 				name: "no matching mount errors",
 				labels: map[string]string{
-					"backup.enable": "true",
-					"backup.kind":   "sqlite",
-					"backup.path":   "/data/db.sqlite3",
+					"zyp.enable": "true",
+					"zyp.kind":   "sqlite",
+					"zyp.path":   "/data/db.sqlite3",
 				},
 				mounts: []container.MountPoint{
 					{Destination: "/other", Source: "/srv/prod/other/data"},
@@ -115,9 +115,9 @@ func TestParseLabels(t *testing.T) {
 			{
 				name: "mount destination prefix boundary is respected",
 				labels: map[string]string{
-					"backup.enable": "true",
-					"backup.kind":   "sqlite",
-					"backup.path":   "/data2/db.sqlite3",
+					"zyp.enable": "true",
+					"zyp.kind":   "sqlite",
+					"zyp.path":   "/data2/db.sqlite3",
 				},
 				mounts: []container.MountPoint{
 					{Destination: "/data", Source: "/srv/prod/vaultwarden/data"},
@@ -154,8 +154,8 @@ func TestParseLabels(t *testing.T) {
 			{
 				name: "opted in, no path needed",
 				labels: map[string]string{
-					"backup.enable": "true",
-					"backup.kind":   "postgres",
+					"zyp.enable": "true",
+					"zyp.kind":   "postgres",
 				},
 				wantOk: true,
 				wantTarget: provider.Target{
@@ -163,8 +163,8 @@ func TestParseLabels(t *testing.T) {
 					Kind:         provider.KindPostgres,
 					ContainerRef: "test-id",
 					Labels: map[string]string{
-						"backup.enable": "true",
-						"backup.kind":   "postgres",
+						"zyp.enable": "true",
+						"zyp.kind":   "postgres",
 					},
 				},
 			},

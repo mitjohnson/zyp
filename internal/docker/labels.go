@@ -9,23 +9,25 @@ import (
 )
 
 func parseLabels(containerName, containerID string, labels map[string]string, mounts []container.MountPoint) (provider.Target, bool, error) {
-	if labels["backup.enable"] != "true" {
+	if labels["zyp.enable"] != "true" {
 		return provider.Target{}, false, nil
 	}
 
-	name := labels["backup.name"]
+	repository := labels["zyp.repository"]
+	compress := labels["zyp.compress"] == "true"
+	name := labels["zyp.name"]
 	if name == "" {
 		name = containerName
 	}
 
-	kindStr := labels["backup.kind"]
+	kindStr := labels["zyp.kind"]
 
 	if kindStr != "sqlite" && kindStr != "postgres" {
-		return provider.Target{}, false, fmt.Errorf("container %s: unknown backup.kind %q", containerName, kindStr)
+		return provider.Target{}, false, fmt.Errorf("container %s: unknown zyp.kind %q", containerName, kindStr)
 	}
 
 	if kindStr == "sqlite" {
-		backupPath := labels["backup.path"]
+		backupPath := labels["zyp.path"]
 
 		if backupPath == "" {
 			return provider.Target{}, false, fmt.Errorf("container %s: no backup path specified", containerName)
@@ -38,6 +40,8 @@ func parseLabels(containerName, containerID string, labels map[string]string, mo
 					Name:         name,
 					Kind:         provider.Kind(kindStr),
 					Source:       hostPath,
+					Repository:   repository,
+					Compress:     compress,
 					ContainerRef: containerID,
 					Labels:       labels,
 				}
@@ -51,6 +55,8 @@ func parseLabels(containerName, containerID string, labels map[string]string, mo
 	target := provider.Target{
 		Name:         name,
 		Kind:         provider.Kind(kindStr),
+		Repository:   repository,
+		Compress:     compress,
 		ContainerRef: containerID,
 		Labels:       labels,
 	}
