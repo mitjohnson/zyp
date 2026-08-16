@@ -1,0 +1,8 @@
+/bin/
+/zyp
+/zyp.yaml
+*.env
+*.test
+*.out
+.DS_Store
+*.swp
