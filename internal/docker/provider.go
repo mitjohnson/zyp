@@ -85,3 +85,7 @@ func (p *DockerProvider) HealthCheck(ctx context.Context) error {
 	_, err := p.Discover(ctx)
 	return err
 }
+
+func (p *DockerProvider) Name() string {
+	return "docker"
+}

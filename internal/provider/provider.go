@@ -25,6 +25,7 @@ type Target struct {
 }
 
 type Provider interface {
+	Name() string
 	Discover(ctx context.Context) ([]Target, error)
 	HealthCheck(ctx context.Context) error
 }
