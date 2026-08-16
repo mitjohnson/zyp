@@ -162,10 +162,12 @@ func TestDockerProvider(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			p := NewDockerProvider(&fakeContainerLister{
-				containers: test.containers,
-				err:        test.listErr,
-			})
+			p := &DockerProvider{
+				cli: &fakeContainerLister{
+					containers: test.containers,
+					err:        test.listErr,
+				},
+			}
 
 			got, err := p.Discover(context.Background())
 

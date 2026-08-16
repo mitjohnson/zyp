@@ -10,32 +10,13 @@ import (
 type Config struct {
 	DefaultRepository string                `yaml:"defaultRepository"`
 	Repositories      map[string]Repository `yaml:"repositories"`
-	Providers         Providers             `yaml:"providers"`
+	Providers         map[string]yaml.Node  `yaml:"providers"`
 }
 
 type Repository struct {
 	Engine string            `yaml:"engine"`
 	Remote string            `yaml:"repo"`
 	Env    map[string]string `yaml:"env"`
-}
-
-type Providers struct {
-	Docker DockerProviderConfig `yaml:"docker"`
-	File   FileProviderConfig   `yaml:"file"`
-}
-
-type DockerProviderConfig struct {
-	Enabled bool `yaml:"enabled"`
-}
-
-type FileProviderConfig struct {
-	Enabled bool               `yaml:"enabled"`
-	Targets []FileTargetConfig `yaml:"targets"`
-}
-
-type FileTargetConfig struct {
-	Name string `yaml:"name"`
-	Path string `yaml:"path"`
 }
 
 func Load(path string) (Config, error) {

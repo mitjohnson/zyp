@@ -1,6 +1,10 @@
 package provider
 
-import "context"
+import (
+	"context"
+
+	"gopkg.in/yaml.v3"
+)
 
 type Kind string
 
@@ -22,4 +26,17 @@ type Target struct {
 
 type Provider interface {
 	Discover(ctx context.Context) ([]Target, error)
+	HealthCheck(ctx context.Context) error
+}
+
+type Constructor func(ctx context.Context, cfg yaml.Node) (p Provider, enabled bool, err error)
+
+var registry = map[string]Constructor{}
+
+func Register(name string, constructor Constructor) {
+	registry[name] = constructor
+}
+
+func Registered() map[string]Constructor {
+	return registry
 }

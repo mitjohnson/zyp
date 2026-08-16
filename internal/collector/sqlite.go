@@ -12,6 +12,10 @@ import (
 
 type SqliteCollector struct{}
 
+func init() {
+	Register(provider.KindSQLite, &SqliteCollector{})
+}
+
 func (s *SqliteCollector) Collect(ctx context.Context, t provider.Target) (Dump, error) {
 	if t.Kind != provider.KindSQLite {
 		return Dump{}, fmt.Errorf("invalid target kind: %s", t.Kind)
