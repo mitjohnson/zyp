@@ -15,7 +15,7 @@ type Config struct {
 
 type Repository struct {
 	Engine string            `yaml:"engine"`
-	Remote string            `yaml:"repo"`
+	Remote string            `yaml:"remote"`
 	Env    map[string]string `yaml:"env"`
 }
 
