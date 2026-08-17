@@ -1,0 +1,43 @@
+# default repo must be an existing repo
+defaultRepository: default_repo
+
+repositories:
+  rclone-example:
+    # Example setup for encrypted backup to b2 w/ rclone.
+    #
+    # https://rclone.org/docs/#config-file
+    # https://rclone.org/crypt/#standard-options
+    engine: rclone
+    remote: 'crypt:'
+    env:
+      RCLONE_CONFIG_B2_TYPE: b2
+      RCLONE_CONFIG_B2_ACCOUNT: <key ID>
+      RCLONE_CONFIG_B2_KEY: <secret>
+
+      RCLONE_CONFIG_CRYPT_TYPE: crypt
+      RCLONE_CONFIG_CRYPT_REMOTE: <b2:bucket-name:folder-name>
+      RCLONE_CONFIG_CRYPT_FILENAME_ENCRYPTION: standard
+      RCLONE_CONFIG_CRYPT_DIRECTORY_NAME_ENCRYPTION: 'true'
+      # rclone expects this passcode to be the obfuscated version
+      # https://rclone.org/crypt/#crypt-password
+      RCLONE_CONFIG_CRYPT_PASSWORD: <password>
+      RCLONE_CONFIG_CRYPT_PASSWORD2: <optional password2>
+
+  restic-example:
+    # You will need to manually create a repository before zyp can use it
+    # https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html#preparing-a-new-repository
+    engine: restic
+    remote: <s3:s3_compatible_domain/bucket/folder-name>
+    env:
+      RESTIC_PASSWORD: <password>
+      AWS_ACCESS_KEY_ID: <access_key> (use keyId for b2)
+      AWS_SECRET_ACCESS_KEY: <secret>
+
+providers:
+  docker:
+    enabled: true
+    # Socket is optional if using the docker binary.
+    #
+    # Podman doesn't share Docker's default socket path/DOCKER_HOST
+    # Requires the podman socket to be enabled: systemctl --user enable --now podman.socket
+    socket: unix:///run/user/1000/podman/podman.sock
