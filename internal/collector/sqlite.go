@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	_ "modernc.org/sqlite"
 
@@ -27,8 +29,12 @@ func (s *SqliteCollector) Collect(ctx context.Context, t provider.Target) (Dump,
 		return Dump{}, fmt.Errorf("failed to open sqlite database: %w", err)
 	}
 	defer con.Close()
-
-	dest := t.Source + ".backup"
+	
+	tmpDir, err := os.MkdirTemp("", "zyp-"+t.Name+"-")
+	if err != nil {
+		return Dump{}, fmt.Errorf("failed to create temporary directory: %w", err)
+	}
+	dest := filepath.Join(tmpDir, filepath.Base(t.Source)+".backup")
 
 	_, err = con.ExecContext(ctx, "VACUUM INTO ?", dest)
 

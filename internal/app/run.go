@@ -3,11 +3,16 @@ package app
 import (
 	"context"
 	"log/slog"
+	"os"
+	"path/filepath"
 
 	"zyp/internal/collector"
 	"zyp/internal/config"
 	"zyp/internal/engine"
 	"zyp/internal/provider"
+
+	_ "zyp/internal/rclone"
+	_ "zyp/internal/restic"
 )
 
 func DiscoverAllTargets(ctx context.Context, providers []provider.Provider) map[string][]provider.Target {
@@ -41,6 +46,14 @@ func collectDumps(ctx context.Context, targets []provider.Target) []collector.Du
 		dumps = append(dumps, dump)
 	}
 	return dumps
+}
+
+func cleanupDumps(dumps []collector.Dump) {
+	for _, dump := range dumps {
+		if err := os.RemoveAll(filepath.Dir(dump.Path)); err != nil {
+			slog.Warn("failed to clean up dump", "dump", dump.Path, "error", err)
+		}
+	}
 }
 
 func groupByRepository(dumps []collector.Dump, cfg config.Config) map[string][]collector.Dump {
@@ -82,6 +95,7 @@ func Run(ctx context.Context, cfg config.Config, providers []provider.Provider) 
 	}
 
 	dumps := collectDumps(ctx, targets)
+	defer cleanupDumps(dumps)
 
 	if len(dumps) == 0 {
 		slog.Info("nothing to back up")

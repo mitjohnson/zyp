@@ -5,9 +5,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	_ "zyp/internal/rclone"
-	_ "zyp/internal/restic"
-
 	"zyp/internal/app"
 	"zyp/internal/config"
 )
