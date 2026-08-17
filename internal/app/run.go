@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 	"zyp/internal/config"
 	"zyp/internal/engine"
 	"zyp/internal/provider"
+	"zyp/internal/workdir"
 
 	_ "zyp/internal/rclone"
 	_ "zyp/internal/restic"
@@ -28,7 +30,7 @@ func DiscoverAllTargets(ctx context.Context, providers []provider.Provider) map[
 	return results
 }
 
-func collectDumps(ctx context.Context, targets []provider.Target) []collector.Dump {
+func collectDumps(ctx context.Context, targets []provider.Target, wd *workdir.WorkDir) []collector.Dump {
 	var dumps []collector.Dump
 	for _, t := range targets {
 		coll, ok := collector.Registered()[t.Kind]
@@ -37,7 +39,7 @@ func collectDumps(ctx context.Context, targets []provider.Target) []collector.Du
 			continue
 		}
 
-		dump, err := coll.Collect(ctx, t)
+		dump, err := coll.Collect(ctx, t, wd)
 		if err != nil {
 			slog.Warn("failed to collect target", "target", t.Name, "error", err)
 			continue
@@ -48,12 +50,12 @@ func collectDumps(ctx context.Context, targets []provider.Target) []collector.Du
 	return dumps
 }
 
-func cleanupDumps(dumps []collector.Dump) {
-	for _, dump := range dumps {
-		if err := os.RemoveAll(filepath.Dir(dump.Path)); err != nil {
-			slog.Warn("failed to clean up dump", "dump", dump.Path, "error", err)
-		}
+func defaultWorkDirPath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return filepath.Join(os.TempDir(), "zyp")
 	}
+	return filepath.Join(home, ".cache", "zyp")
 }
 
 func groupByRepository(dumps []collector.Dump, cfg config.Config) map[string][]collector.Dump {
@@ -89,13 +91,18 @@ func backupGroups(ctx context.Context, groups map[string][]collector.Dump, cfg c
 }
 
 func Run(ctx context.Context, cfg config.Config, providers []provider.Provider) error {
+	wd, err := workdir.Open(defaultWorkDirPath())
+	if err != nil {
+		return fmt.Errorf("acquire work dir: %w", err)
+	}
+	defer wd.Close()
+
 	var targets []provider.Target
 	for _, discovered := range DiscoverAllTargets(ctx, providers) {
 		targets = append(targets, discovered...)
 	}
 
-	dumps := collectDumps(ctx, targets)
-	defer cleanupDumps(dumps)
+	dumps := collectDumps(ctx, targets, wd)
 
 	if len(dumps) == 0 {
 		slog.Info("nothing to back up")

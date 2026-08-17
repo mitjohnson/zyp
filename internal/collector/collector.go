@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"zyp/internal/provider"
+	"zyp/internal/workdir"
 )
 
 type Dump struct {
@@ -11,7 +12,7 @@ type Dump struct {
 }
 
 type Collector interface {
-	Collect(ctx context.Context, t provider.Target) (Dump, error)
+	Collect(ctx context.Context, t provider.Target, wd *workdir.WorkDir) (Dump, error)
 }
 
 var registry = map[provider.Kind]Collector{}

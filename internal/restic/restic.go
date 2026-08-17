@@ -36,7 +36,10 @@ func (r Runner) Backup(ctx context.Context, dumps []collector.Dump) error {
 		paths[i] = dump.Path
 	}
 
-	args := append([]string{"backup"}, paths...)
+	// collecters can modify the mtime of the file in the working dir to match the source
+	// however other metadata like inode and ctime will always be different.
+	// --ignore-inode is used to avoid restic rehashing the file every time
+	args := append([]string{"backup", "--ignore-inode"}, paths...)
 	args = append(args, "-r", r.Repository)
 
 	cmd := exec.CommandContext(ctx, resticPath, args...)
