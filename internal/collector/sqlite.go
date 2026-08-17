@@ -42,7 +42,7 @@ func (s *SqliteCollector) Collect(ctx context.Context, t provider.Target, wd *wo
 		return Dump{}, fmt.Errorf("failed to create sqlite backup: %w", err)
 	}
 
-	// Stamp the scratch copy with the source's own mtime to produce a stable mtime across runs.  
+	// Stamp the scratch copy with the source's own mtime to produce a stable mtime across runs.
 	// This assists restics ability to detect changes and avoid rehashing unmodified files.
 	srcInfo, err := os.Stat(t.Source)
 	if err != nil {
