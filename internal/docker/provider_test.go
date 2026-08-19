@@ -15,7 +15,7 @@ type fakeContainerLister struct {
 	err        error
 }
 
-func (f *fakeContainerLister) ContainerList(ctx context.Context, options container.ListOptions) ([]container.Summary, error) {
+func (f *fakeContainerLister) ContainerList(_ context.Context, _ container.ListOptions) ([]container.Summary, error) {
 	return f.containers, f.err
 }
 
@@ -162,7 +162,7 @@ func TestDockerProvider(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			p := &DockerProvider{
+			p := &Provider{
 				cli: &fakeContainerLister{
 					containers: test.containers,
 					err:        test.listErr,

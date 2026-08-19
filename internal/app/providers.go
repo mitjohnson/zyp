@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	// Registers docker provider
 	_ "zyp/internal/docker"
 
 	"zyp/internal/config"

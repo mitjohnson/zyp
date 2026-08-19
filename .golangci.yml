@@ -27,9 +27,13 @@ linters:
   exclusions:
     rules:
       - path: (.+)\.go$
-        text: exported (function|method|var|type|const) .* should have comment or be unexported
+        text: exported (function|method|var|type|const) .* should have comment
       - path: (.+)\.go$
         text: "package-comments: should have a package comment"
+      - path: _test\.go
+        linters:
+          - gosec
+        text: "G304|G306"
 formatters:
   enable:
     - gofmt

@@ -20,6 +20,7 @@ type Repository struct {
 }
 
 func Load(path string) (Config, error) {
+	//nolint:gosec // provided path is controlled by the user, and we need to read it
 	rawConf, err := os.ReadFile(path)
 	if err != nil {
 		return Config{}, err

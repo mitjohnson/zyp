@@ -2,6 +2,7 @@ package workdir
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -17,13 +18,16 @@ func Open(root string) (*WorkDir, error) {
 		return nil, fmt.Errorf("create work dir %s: %w", root, err)
 	}
 
+	//nolint:gosec // the "root" is generated from DefaultWorkDirPath generated in app/run.go
 	lock, err := os.OpenFile(filepath.Join(root, ".lock"), os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		return nil, fmt.Errorf("open lock file: %w", err)
 	}
 
 	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
-		lock.Close()
+		if closeErr := lock.Close(); closeErr != nil {
+			slog.Warn("failed to close lock file after flock failure", "error", closeErr)
+		}
 		return nil, fmt.Errorf("encountered lockfile, aborting: %w", err)
 	}
 
@@ -50,10 +54,14 @@ func (w *WorkDir) Close() error {
 			if e.Name() == ".lock" {
 				continue
 			}
-			os.RemoveAll(filepath.Join(w.root, e.Name()))
+			if err := os.RemoveAll(filepath.Join(w.root, e.Name())); err != nil {
+				slog.Warn("failed to remove scratch directory", "path", filepath.Join(w.root, e.Name()), "error", err)
+			}
 		}
 	}
 
-	syscall.Flock(int(w.lock.Fd()), syscall.LOCK_UN)
+	if err := syscall.Flock(int(w.lock.Fd()), syscall.LOCK_UN); err != nil {
+		slog.Warn("failed to unlock work dir lock file", "error", err)
+	}
 	return w.lock.Close()
 }

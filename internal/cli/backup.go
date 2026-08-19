@@ -12,7 +12,7 @@ import (
 var backupCmd = &cobra.Command{
 	Use:   "backup",
 	Short: "Discover, collect, and back up everything configured",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		cfg, err := config.Load(confPath)
 		if err != nil {
 			return fmt.Errorf("load config: %w", err)

@@ -13,7 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type DockerProvider struct {
+type Provider struct {
 	cli ContainerLister
 }
 
@@ -48,7 +48,7 @@ func NewProvider(ctx context.Context, raw yaml.Node) (provider.Provider, bool, e
 		return nil, true, fmt.Errorf("create docker client: %w", err)
 	}
 
-	p := &DockerProvider{cli: cli}
+	p := &Provider{cli: cli}
 
 	if err := p.HealthCheck(ctx); err != nil {
 		return nil, true, fmt.Errorf("docker health check failed: %w", err)
@@ -57,7 +57,7 @@ func NewProvider(ctx context.Context, raw yaml.Node) (provider.Provider, bool, e
 	return p, true, nil
 }
 
-func (p *DockerProvider) Discover(ctx context.Context) ([]provider.Target, error) {
+func (p *Provider) Discover(ctx context.Context) ([]provider.Target, error) {
 	containers, err := p.cli.ContainerList(ctx, container.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("list containers: %w", err)
@@ -81,11 +81,11 @@ func (p *DockerProvider) Discover(ctx context.Context) ([]provider.Target, error
 	return targets, nil
 }
 
-func (p *DockerProvider) HealthCheck(ctx context.Context) error {
+func (p *Provider) HealthCheck(ctx context.Context) error {
 	_, err := p.Discover(ctx)
 	return err
 }
 
-func (p *DockerProvider) Name() string {
+func (p *Provider) Name() string {
 	return "docker"
 }

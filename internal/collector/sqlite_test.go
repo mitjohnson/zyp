@@ -12,18 +12,20 @@ import (
 	"zyp/internal/workdir"
 )
 
-func createTestSqliteDB(path string) error {
+func createTestSqliteDB(path string) (err error) {
 	conn, err := sql.Open("sqlite", path)
 	if err != nil {
 		return fmt.Errorf("failed to create test sqlite database: %w", err)
 	}
+	defer func() {
+		if closeErr := conn.Close(); closeErr != nil && err == nil {
+			err = fmt.Errorf("failed to close test sqlite connection: %w", closeErr)
+		}
+	}()
 
 	if _, err := conn.Exec("CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)"); err != nil {
-		conn.Close()
 		return fmt.Errorf("failed to create test table: %w", err)
 	}
-
-	conn.Close()
 
 	return nil
 }
@@ -36,7 +38,7 @@ func TestSqliteCollector_Collect(t *testing.T) {
 	}{
 		{
 			name: "valid sqlite target",
-			setup: func(t *testing.T, wd *workdir.WorkDir) provider.Target {
+			setup: func(t *testing.T, _ *workdir.WorkDir) provider.Target {
 				dbPath := filepath.Join(t.TempDir(), "test.db")
 				if err := createTestSqliteDB(dbPath); err != nil {
 					t.Fatalf("failed to create test sqlite database: %v", err)
@@ -46,14 +48,14 @@ func TestSqliteCollector_Collect(t *testing.T) {
 		},
 		{
 			name: "wrong kind",
-			setup: func(t *testing.T, wd *workdir.WorkDir) provider.Target {
+			setup: func(_ *testing.T, _ *workdir.WorkDir) provider.Target {
 				return provider.Target{Name: "test-postgres", Kind: provider.KindPostgres}
 			},
 			wantErr: true,
 		},
 		{
 			name: "source path does not exist",
-			setup: func(t *testing.T, wd *workdir.WorkDir) provider.Target {
+			setup: func(t *testing.T, _ *workdir.WorkDir) provider.Target {
 				dbPath := filepath.Join(t.TempDir(), "missing-dir", "test.db")
 				return provider.Target{Name: "test-sqlite", Kind: provider.KindSQLite, Source: dbPath}
 			},
@@ -89,7 +91,11 @@ func TestSqliteCollector_Collect(t *testing.T) {
 			if err != nil {
 				t.Fatalf("failed to open workdir: %v", err)
 			}
-			defer wd.Close()
+			defer func() {
+				if err := wd.Close(); err != nil {
+					t.Errorf("close workdir: %v", err)
+				}
+			}()
 
 			target := test.setup(t, wd)
 

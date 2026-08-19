@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 
+	// Register SQLite driver.
 	_ "modernc.org/sqlite"
 
 	"zyp/internal/provider"
@@ -29,7 +31,11 @@ func (s *SqliteCollector) Collect(ctx context.Context, t provider.Target, wd *wo
 	if err != nil {
 		return Dump{}, fmt.Errorf("failed to open sqlite database: %w", err)
 	}
-	defer con.Close()
+	defer func() {
+		if closeErr := con.Close(); closeErr != nil {
+			slog.Warn("failed to close sqlite connection", "error", closeErr)
+		}
+	}()
 
 	dest, err := wd.Path(t.Name, filepath.Base(t.Source))
 	if err != nil {
