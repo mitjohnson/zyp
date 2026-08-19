@@ -102,11 +102,11 @@ defaultRepository: prod
 repositories:
   prod:
     engine: restic
-    repo: b2:my-bucket:prod
+    remote: b2:my-bucket:prod
     env:
       RESTIC_PASSWORD: secret
 `
-		if err := os.WriteFile(path, []byte(yamlContent), 0644); err != nil {
+		if err := os.WriteFile(path, []byte(yamlContent), 0600); err != nil {
 			t.Fatalf("failed to write test config: %v", err)
 		}
 
@@ -137,7 +137,7 @@ repositories:
 
 	t.Run("malformed yaml", func(t *testing.T) {
 		path := filepath.Join(t.TempDir(), "zyp.yaml")
-		if err := os.WriteFile(path, []byte("not: [valid: yaml"), 0644); err != nil {
+		if err := os.WriteFile(path, []byte("not: [valid: yaml"), 0600); err != nil {
 			t.Fatalf("failed to write test config: %v", err)
 		}
 
@@ -154,7 +154,7 @@ repositories:
   prod:
     engine: restic
 `
-		if err := os.WriteFile(path, []byte(yamlContent), 0644); err != nil {
+		if err := os.WriteFile(path, []byte(yamlContent), 0600); err != nil {
 			t.Fatalf("failed to write test config: %v", err)
 		}
 
