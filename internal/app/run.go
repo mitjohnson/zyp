@@ -7,15 +7,22 @@ import (
 	"os"
 	"path/filepath"
 
+	"golang.org/x/sync/errgroup"
+
 	"zyp/internal/collector"
 	"zyp/internal/config"
 	"zyp/internal/engine"
 	"zyp/internal/provider"
 	"zyp/internal/workdir"
 
-	_ "zyp/internal/rclone"
-	_ "zyp/internal/restic"
+	// register engines
+	_ "zyp/internal/engine/rclone"
+	_ "zyp/internal/engine/restic"
 )
+
+// maxConcurrentRepositoryBackups caps how many repositories back up at
+// once, independent of how many repositories are configured.
+const maxConcurrentRepositoryBackups = 4
 
 func DiscoverAllTargets(ctx context.Context, providers []provider.Provider) map[string][]provider.Target {
 	results := map[string][]provider.Target{}
@@ -71,6 +78,9 @@ func groupByRepository(dumps []collector.Dump, cfg config.Config) map[string][]c
 }
 
 func backupGroups(ctx context.Context, groups map[string][]collector.Dump, cfg config.Config) {
+	var g errgroup.Group
+	g.SetLimit(maxConcurrentRepositoryBackups)
+
 	for name, dumps := range groups {
 		repo, ok := cfg.Repositories[name]
 		if !ok {
@@ -84,10 +94,16 @@ func backupGroups(ctx context.Context, groups map[string][]collector.Dump, cfg c
 			continue
 		}
 
-		if err := constructor(repo).Backup(ctx, dumps); err != nil {
-			slog.Warn("backup failed", "repository", name, "error", err)
-		}
+		eng := constructor(repo)
+		g.Go(func() error {
+			if err := eng.Backup(ctx, dumps); err != nil {
+				slog.Warn("backup failed", "repository", name, "error", err)
+			}
+			return nil
+		})
 	}
+
+	_ = g.Wait()
 }
 
 func Run(ctx context.Context, cfg config.Config, providers []provider.Provider) error {
@@ -95,7 +111,11 @@ func Run(ctx context.Context, cfg config.Config, providers []provider.Provider) 
 	if err != nil {
 		return fmt.Errorf("acquire work dir: %w", err)
 	}
-	defer wd.Close()
+	defer func() {
+		if err := wd.Close(); err != nil {
+			slog.Warn("failed to close work dir", "error", err)
+		}
+	}()
 
 	var targets []provider.Target
 	for _, discovered := range DiscoverAllTargets(ctx, providers) {
