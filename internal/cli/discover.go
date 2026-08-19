@@ -13,7 +13,7 @@ import (
 var discoverCmd = &cobra.Command{
 	Use:   "discover",
 	Short: "Show what targets would be backed up, without collecting or backing up",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		cfg, err := config.Load(confPath)
 		if err != nil {
 			return fmt.Errorf("load config: %w", err)

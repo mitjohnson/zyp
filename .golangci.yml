@@ -1,0 +1,36 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - asciicheck
+    - bodyclose
+    - copyloopvar
+    - errcheck
+    - govet
+    - importas
+    - ineffassign
+    - nolintlint
+    - revive
+    - staticcheck
+    - unused
+    - gosec
+  settings:
+    staticcheck:
+      checks:
+        - "all"
+        - "-ST1000"
+        - "-ST1003"
+        - "-ST1016"
+        - "-ST1020"
+        - "-ST1021"
+        - "-ST1022"
+  exclusions:
+    rules:
+      - path: (.+)\.go$
+        text: exported (function|method|var|type|const) .* should have comment or be unexported
+      - path: (.+)\.go$
+        text: "package-comments: should have a package comment"
+formatters:
+  enable:
+    - gofmt
+    - goimports
