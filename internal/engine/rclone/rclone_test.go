@@ -9,7 +9,7 @@ import (
 
 	"zyp/internal/collector"
 	"zyp/internal/engine"
-	"zyp/internal/provider"
+	"zyp/internal/target"
 )
 
 // TODO: Find better way to test without needing a shell script fake
@@ -44,7 +44,7 @@ func newDump(t *testing.T, dir, name string, compress bool) collector.Dump {
 		t.Fatalf("write dump file: %v", err)
 	}
 	return collector.Dump{
-		Target: provider.Target{Name: name, Compress: compress},
+		Target: target.Target{Name: name, Compress: compress},
 		Path:   path,
 	}
 }

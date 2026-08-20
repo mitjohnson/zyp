@@ -13,6 +13,7 @@ import (
 	"zyp/internal/config"
 	"zyp/internal/engine"
 	"zyp/internal/provider"
+	"zyp/internal/target"
 	"zyp/internal/workdir"
 
 	// register engines
@@ -24,8 +25,8 @@ import (
 // once, independent of how many repositories are configured.
 const maxConcurrentRepositoryBackups = 4
 
-func DiscoverAllTargets(ctx context.Context, providers []provider.Provider) map[string][]provider.Target {
-	results := map[string][]provider.Target{}
+func DiscoverAllTargets(ctx context.Context, providers []provider.Provider) map[string][]target.Target {
+	results := map[string][]target.Target{}
 	for _, p := range providers {
 		targets, err := p.Discover(ctx)
 		if err != nil {
@@ -37,7 +38,7 @@ func DiscoverAllTargets(ctx context.Context, providers []provider.Provider) map[
 	return results
 }
 
-func collectDumps(ctx context.Context, targets []provider.Target, wd *workdir.WorkDir) []collector.Dump {
+func collectDumps(ctx context.Context, targets []target.Target, wd *workdir.WorkDir) []collector.Dump {
 	var dumps []collector.Dump
 	for _, t := range targets {
 		coll, ok := collector.Registered()[t.Kind]
@@ -117,7 +118,7 @@ func Run(ctx context.Context, cfg config.Config, providers []provider.Provider) 
 		}
 	}()
 
-	var targets []provider.Target
+	var targets []target.Target
 	for _, discovered := range DiscoverAllTargets(ctx, providers) {
 		targets = append(targets, discovered...)
 	}

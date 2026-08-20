@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"zyp/internal/provider"
+	"zyp/internal/target"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -14,7 +15,9 @@ import (
 )
 
 type Provider struct {
-	cli ContainerLister
+	cli DockerClient
+	// Target name -> Container ID
+	containers map[string]string
 }
 
 func init() {
@@ -48,7 +51,7 @@ func NewProvider(ctx context.Context, raw yaml.Node) (provider.Provider, bool, e
 		return nil, true, fmt.Errorf("create docker client: %w", err)
 	}
 
-	p := &Provider{cli: cli}
+	p := &Provider{cli: cli, containers: map[string]string{}}
 
 	if err := p.HealthCheck(ctx); err != nil {
 		return nil, true, fmt.Errorf("docker health check failed: %w", err)
@@ -57,16 +60,18 @@ func NewProvider(ctx context.Context, raw yaml.Node) (provider.Provider, bool, e
 	return p, true, nil
 }
 
-func (p *Provider) Discover(ctx context.Context) ([]provider.Target, error) {
+func (p *Provider) Discover(ctx context.Context) ([]target.Target, error) {
 	containers, err := p.cli.ContainerList(ctx, container.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("list containers: %w", err)
 	}
 
-	var targets []provider.Target
+	var targets []target.Target
 	for _, c := range containers {
 		name := strings.TrimPrefix(c.Names[0], "/")
 		target, ok, err := parseLabels(name, c.ID, c.Labels, c.Mounts)
+
+		p.containers[target.Name] = c.ID
 
 		if err != nil {
 			slog.Warn("skipping containers with invalid labels", "container", name, "error", err)
@@ -82,8 +87,10 @@ func (p *Provider) Discover(ctx context.Context) ([]provider.Target, error) {
 }
 
 func (p *Provider) HealthCheck(ctx context.Context) error {
-	_, err := p.Discover(ctx)
-	return err
+	if _, err := p.cli.Ping(ctx); err != nil {
+		return fmt.Errorf("ping docker daemon: %w", err)
+	}
+	return nil
 }
 
 func (p *Provider) Name() string {

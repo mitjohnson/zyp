@@ -3,10 +3,12 @@ package docker
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
-	"zyp/internal/provider"
+	"zyp/internal/target"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 )
 
@@ -19,12 +21,19 @@ func (f *fakeContainerLister) ContainerList(_ context.Context, _ container.ListO
 	return f.containers, f.err
 }
 
+func (f *fakeContainerLister) Ping(_ context.Context) (types.Ping, error) {
+	if f.err != nil {
+		return types.Ping{}, fmt.Errorf("Ping() = %v, want empty string", f.err)
+	}
+	return types.Ping{}, nil
+}
+
 func TestDockerProvider(t *testing.T) {
 	tests := []struct {
 		name        string
 		containers  []container.Summary
 		listErr     error
-		wantTargets []provider.Target
+		wantTargets []target.Target
 		wantErr     bool
 	}{
 		{
@@ -58,12 +67,10 @@ func TestDockerProvider(t *testing.T) {
 					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 			},
-			wantTargets: []provider.Target{
+			wantTargets: []target.Target{
 				{
-					Name:         "my-container",
-					ContainerRef: "1234567890",
-					Kind:         provider.KindPostgres,
-					Labels:       map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
+					Name: "my-container",
+					Kind: target.KindPostgres,
 				},
 			},
 			wantErr: false,
@@ -77,12 +84,10 @@ func TestDockerProvider(t *testing.T) {
 					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 			},
-			wantTargets: []provider.Target{
+			wantTargets: []target.Target{
 				{
-					Name:         "my-container",
-					ContainerRef: "1234567890",
-					Kind:         provider.KindPostgres,
-					Labels:       map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
+					Name: "my-container",
+					Kind: target.KindPostgres,
 				},
 			},
 			wantErr: false,
@@ -106,12 +111,10 @@ func TestDockerProvider(t *testing.T) {
 					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
 				},
 			},
-			wantTargets: []provider.Target{
+			wantTargets: []target.Target{
 				{
-					Name:         "my-container-3",
-					ContainerRef: "1122334455",
-					Kind:         provider.KindPostgres,
-					Labels:       map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
+					Name: "my-container-3",
+					Kind: target.KindPostgres,
 				},
 			},
 			wantErr: false,
@@ -141,19 +144,15 @@ func TestDockerProvider(t *testing.T) {
 					Labels: map[string]string{"zyp.enable": "true"},
 				},
 			},
-			wantTargets: []provider.Target{
+			wantTargets: []target.Target{
 				{
-					Name:         "my-container",
-					ContainerRef: "1234567890",
-					Kind:         provider.KindPostgres,
-					Labels:       map[string]string{"zyp.enable": "true", "zyp.kind": "postgres"},
+					Name: "my-container",
+					Kind: target.KindPostgres,
 				},
 				{
-					Name:         "my-container-2",
-					ContainerRef: "0987654321",
-					Kind:         provider.KindSQLite,
-					Labels:       map[string]string{"zyp.enable": "true", "zyp.kind": "sqlite", "zyp.path": "/data/db.sqlite"},
-					Source:       "/mnt/data/db.sqlite",
+					Name:   "my-container-2",
+					Kind:   target.KindSQLite,
+					Source: "/mnt/data/db.sqlite",
 				},
 			},
 			wantErr: false,

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"zyp/internal/provider"
+	"zyp/internal/target"
 
 	"github.com/docker/docker/api/types/container"
 )
@@ -40,7 +40,7 @@ func TestParseLabels(t *testing.T) {
 			mounts     []container.MountPoint
 			wantOk     bool
 			wantErr    bool
-			wantTarget provider.Target
+			wantTarget target.Target
 		}{
 			{
 				name: "missing backup.path errors",
@@ -62,16 +62,10 @@ func TestParseLabels(t *testing.T) {
 					{Destination: "/data", Source: "/srv/prod/vaultwarden/data"},
 				},
 				wantOk: true,
-				wantTarget: provider.Target{
-					Name:         "test-container",
-					Kind:         provider.KindSQLite,
-					Source:       "/srv/prod/vaultwarden/data/db.sqlite3",
-					ContainerRef: "test-id",
-					Labels: map[string]string{
-						"zyp.enable": "true",
-						"zyp.kind":   "sqlite",
-						"zyp.path":   "/data/db.sqlite3",
-					},
+				wantTarget: target.Target{
+					Name:   "test-container",
+					Kind:   target.KindSQLite,
+					Source: "/srv/prod/vaultwarden/data/db.sqlite3",
 				},
 			},
 			{
@@ -86,17 +80,10 @@ func TestParseLabels(t *testing.T) {
 					{Destination: "/data", Source: "/srv/prod/vaultwarden/data"},
 				},
 				wantOk: true,
-				wantTarget: provider.Target{
-					Name:         "vaultwarden-db",
-					Kind:         provider.KindSQLite,
-					Source:       "/srv/prod/vaultwarden/data/db.sqlite3",
-					ContainerRef: "test-id",
-					Labels: map[string]string{
-						"zyp.enable": "true",
-						"zyp.kind":   "sqlite",
-						"zyp.path":   "/data/db.sqlite3",
-						"zyp.name":   "vaultwarden-db",
-					},
+				wantTarget: target.Target{
+					Name:   "vaultwarden-db",
+					Kind:   target.KindSQLite,
+					Source: "/srv/prod/vaultwarden/data/db.sqlite3",
 				},
 			},
 			{
@@ -149,7 +136,7 @@ func TestParseLabels(t *testing.T) {
 			name       string
 			labels     map[string]string
 			wantOk     bool
-			wantTarget provider.Target
+			wantTarget target.Target
 		}{
 			{
 				name: "opted in, no path needed",
@@ -158,14 +145,9 @@ func TestParseLabels(t *testing.T) {
 					"zyp.kind":   "postgres",
 				},
 				wantOk: true,
-				wantTarget: provider.Target{
-					Name:         "test-container",
-					Kind:         provider.KindPostgres,
-					ContainerRef: "test-id",
-					Labels: map[string]string{
-						"zyp.enable": "true",
-						"zyp.kind":   "postgres",
-					},
+				wantTarget: target.Target{
+					Name: "test-container",
+					Kind: target.KindPostgres,
 				},
 			},
 		}

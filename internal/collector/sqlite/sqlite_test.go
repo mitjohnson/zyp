@@ -1,4 +1,4 @@
-package collector
+package sqlite
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"zyp/internal/provider"
+	"zyp/internal/target"
 	"zyp/internal/workdir"
 )
 
@@ -33,43 +33,43 @@ func createTestSqliteDB(path string) (err error) {
 func TestSqliteCollector_Collect(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(t *testing.T, wd *workdir.WorkDir) provider.Target
+		setup   func(t *testing.T, wd *workdir.WorkDir) target.Target
 		wantErr bool
 	}{
 		{
 			name: "valid sqlite target",
-			setup: func(t *testing.T, _ *workdir.WorkDir) provider.Target {
+			setup: func(t *testing.T, _ *workdir.WorkDir) target.Target {
 				dbPath := filepath.Join(t.TempDir(), "test.db")
 				if err := createTestSqliteDB(dbPath); err != nil {
 					t.Fatalf("failed to create test sqlite database: %v", err)
 				}
-				return provider.Target{Name: "test-sqlite", Kind: provider.KindSQLite, Source: dbPath}
+				return target.Target{Name: "test-sqlite", Kind: target.KindSQLite, Source: dbPath}
 			},
 		},
 		{
 			name: "wrong kind",
-			setup: func(_ *testing.T, _ *workdir.WorkDir) provider.Target {
-				return provider.Target{Name: "test-postgres", Kind: provider.KindPostgres}
+			setup: func(_ *testing.T, _ *workdir.WorkDir) target.Target {
+				return target.Target{Name: "test-postgres", Kind: target.KindPostgres}
 			},
 			wantErr: true,
 		},
 		{
 			name: "source path does not exist",
-			setup: func(t *testing.T, _ *workdir.WorkDir) provider.Target {
+			setup: func(t *testing.T, _ *workdir.WorkDir) target.Target {
 				dbPath := filepath.Join(t.TempDir(), "missing-dir", "test.db")
-				return provider.Target{Name: "test-sqlite", Kind: provider.KindSQLite, Source: dbPath}
+				return target.Target{Name: "test-sqlite", Kind: target.KindSQLite, Source: dbPath}
 			},
 			wantErr: true,
 		},
 		{
 			name: "stale scratch file from a previous run is cleared, not treated as an error",
-			setup: func(t *testing.T, wd *workdir.WorkDir) provider.Target {
+			setup: func(t *testing.T, wd *workdir.WorkDir) target.Target {
 				dbPath := filepath.Join(t.TempDir(), "test.db")
 				if err := createTestSqliteDB(dbPath); err != nil {
 					t.Fatalf("failed to create test sqlite database: %v", err)
 				}
 
-				target := provider.Target{Name: "test-sqlite", Kind: provider.KindSQLite, Source: dbPath}
+				target := target.Target{Name: "test-sqlite", Kind: target.KindSQLite, Source: dbPath}
 
 				stale, err := wd.Path(target.Name, filepath.Base(dbPath))
 				if err != nil {
@@ -99,7 +99,7 @@ func TestSqliteCollector_Collect(t *testing.T) {
 
 			target := test.setup(t, wd)
 
-			collector := &SqliteCollector{}
+			collector := &Collector{}
 			got, err := collector.Collect(context.Background(), target, wd)
 
 			if (err != nil) != test.wantErr {

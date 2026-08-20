@@ -9,7 +9,7 @@ import (
 
 	"zyp/internal/collector"
 	"zyp/internal/engine"
-	"zyp/internal/provider"
+	"zyp/internal/target"
 )
 
 // TODO: Find better way to test without needing a shell script fake
@@ -52,8 +52,8 @@ func TestBackup(t *testing.T) {
 		{
 			name: "invokes restic once with all paths",
 			dumps: []collector.Dump{
-				{Target: provider.Target{Name: "alpha"}, Path: "/tmp/alpha.dump"},
-				{Target: provider.Target{Name: "beta"}, Path: "/tmp/beta.dump"},
+				{Target: target.Target{Name: "alpha"}, Path: "/tmp/alpha.dump"},
+				{Target: target.Target{Name: "beta"}, Path: "/tmp/beta.dump"},
 			},
 			wantCalls: []string{
 				"backup --ignore-inode /tmp/alpha.dump /tmp/beta.dump -r s3:bucket/repo",
@@ -62,7 +62,7 @@ func TestBackup(t *testing.T) {
 		{
 			name: "wraps command error",
 			dumps: []collector.Dump{
-				{Target: provider.Target{Name: "alpha"}, Path: "/tmp/alpha.dump"},
+				{Target: target.Target{Name: "alpha"}, Path: "/tmp/alpha.dump"},
 			},
 			exitCode:        "1",
 			wantErr:         true,
