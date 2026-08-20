@@ -15,7 +15,7 @@ import (
 )
 
 type Provider struct {
-	cli DockerClient
+	cli Client
 	// Target name -> Container ID
 	containers map[string]string
 }
@@ -74,7 +74,6 @@ func (p *Provider) Discover(ctx context.Context) ([]target.Target, error) {
 	for _, c := range containers {
 		name := strings.TrimPrefix(c.Names[0], "/")
 		target, ok, err := parseLabels(name, c.Labels, c.Mounts)
-
 
 		if err != nil {
 			slog.Warn("skipping containers with invalid labels", "container", name, "error", err)
