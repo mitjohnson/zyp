@@ -130,7 +130,7 @@ func TestDockerProvider(t *testing.T) {
 				{
 					Names:  []string{"/my-container-2"},
 					ID:     "0987654321",
-					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "sqlite", "zyp.path": "/data/db.sqlite"},
+					Labels: map[string]string{"zyp.enable": "true", "zyp.kind": "sqlite", "zyp.file-path": "/data/db.sqlite"},
 					Mounts: []container.MountPoint{
 						{
 							Destination: "/data",

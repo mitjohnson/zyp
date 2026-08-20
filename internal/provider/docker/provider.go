@@ -66,12 +66,15 @@ func (p *Provider) Discover(ctx context.Context) ([]target.Target, error) {
 		return nil, fmt.Errorf("list containers: %w", err)
 	}
 
+	if p.containers == nil {
+		p.containers = map[string]string{}
+	}
+
 	var targets []target.Target
 	for _, c := range containers {
 		name := strings.TrimPrefix(c.Names[0], "/")
-		target, ok, err := parseLabels(name, c.ID, c.Labels, c.Mounts)
+		target, ok, err := parseLabels(name, c.Labels, c.Mounts)
 
-		p.containers[target.Name] = c.ID
 
 		if err != nil {
 			slog.Warn("skipping containers with invalid labels", "container", name, "error", err)
@@ -79,6 +82,7 @@ func (p *Provider) Discover(ctx context.Context) ([]target.Target, error) {
 		}
 
 		if ok {
+			p.containers[target.Name] = c.ID
 			targets = append(targets, target)
 		}
 	}

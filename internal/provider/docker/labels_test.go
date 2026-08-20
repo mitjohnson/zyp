@@ -11,7 +11,7 @@ import (
 
 func TestParseLabels(t *testing.T) {
 	t.Run("not opted in", func(t *testing.T) {
-		_, ok, err := parseLabels("test-container", "test-id", map[string]string{}, nil)
+		_, ok, err := parseLabels("test-container", map[string]string{}, nil)
 		if ok {
 			t.Errorf("ok = %v, want false", ok)
 		}
@@ -21,7 +21,7 @@ func TestParseLabels(t *testing.T) {
 	})
 
 	t.Run("unknown backup.kind errors", func(t *testing.T) {
-		_, ok, err := parseLabels("test-container", "test-id", map[string]string{
+		_, ok, err := parseLabels("test-container", map[string]string{
 			"zyp.enable": "true",
 			"zyp.kind":   "mongodb",
 		}, nil)
@@ -54,9 +54,9 @@ func TestParseLabels(t *testing.T) {
 			{
 				name: "resolves host path via matching mount",
 				labels: map[string]string{
-					"zyp.enable": "true",
-					"zyp.kind":   "sqlite",
-					"zyp.path":   "/data/db.sqlite3",
+					"zyp.enable":    "true",
+					"zyp.kind":      "sqlite",
+					"zyp.file-path": "/data/db.sqlite3",
 				},
 				mounts: []container.MountPoint{
 					{Destination: "/data", Source: "/srv/prod/vaultwarden/data"},
@@ -71,10 +71,10 @@ func TestParseLabels(t *testing.T) {
 			{
 				name: "zyp.name overrides container name",
 				labels: map[string]string{
-					"zyp.enable": "true",
-					"zyp.kind":   "sqlite",
-					"zyp.path":   "/data/db.sqlite3",
-					"zyp.name":   "vaultwarden-db",
+					"zyp.enable":    "true",
+					"zyp.kind":      "sqlite",
+					"zyp.file-path": "/data/db.sqlite3",
+					"zyp.name":      "vaultwarden-db",
 				},
 				mounts: []container.MountPoint{
 					{Destination: "/data", Source: "/srv/prod/vaultwarden/data"},
@@ -89,9 +89,9 @@ func TestParseLabels(t *testing.T) {
 			{
 				name: "no matching mount errors",
 				labels: map[string]string{
-					"zyp.enable": "true",
-					"zyp.kind":   "sqlite",
-					"zyp.path":   "/data/db.sqlite3",
+					"zyp.enable":    "true",
+					"zyp.kind":      "sqlite",
+					"zyp.file-path": "/data/db.sqlite3",
 				},
 				mounts: []container.MountPoint{
 					{Destination: "/other", Source: "/srv/prod/other/data"},
@@ -102,9 +102,9 @@ func TestParseLabels(t *testing.T) {
 			{
 				name: "mount destination prefix boundary is respected",
 				labels: map[string]string{
-					"zyp.enable": "true",
-					"zyp.kind":   "sqlite",
-					"zyp.path":   "/data2/db.sqlite3",
+					"zyp.enable":    "true",
+					"zyp.kind":      "sqlite",
+					"zyp.file-path": "/data2/db.sqlite3",
 				},
 				mounts: []container.MountPoint{
 					{Destination: "/data", Source: "/srv/prod/vaultwarden/data"},
@@ -116,51 +116,13 @@ func TestParseLabels(t *testing.T) {
 
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
-				got, ok, err := parseLabels("test-container", "test-id", test.labels, test.mounts)
+				got, ok, err := parseLabels("test-container", test.labels, test.mounts)
 
 				if ok != test.wantOk {
 					t.Errorf("ok = %v, want %v", ok, test.wantOk)
 				}
 				if (err != nil) != test.wantErr {
 					t.Errorf("err = %v, wantErr %v", err, test.wantErr)
-				}
-				if test.wantOk && !reflect.DeepEqual(got, test.wantTarget) {
-					t.Errorf("target = %+v, want %+v", got, test.wantTarget)
-				}
-			})
-		}
-	})
-
-	t.Run("postgres", func(t *testing.T) {
-		tests := []struct {
-			name       string
-			labels     map[string]string
-			wantOk     bool
-			wantTarget target.Target
-		}{
-			{
-				name: "opted in, no path needed",
-				labels: map[string]string{
-					"zyp.enable": "true",
-					"zyp.kind":   "postgres",
-				},
-				wantOk: true,
-				wantTarget: target.Target{
-					Name: "test-container",
-					Kind: target.KindPostgres,
-				},
-			},
-		}
-
-		for _, test := range tests {
-			t.Run(test.name, func(t *testing.T) {
-				got, ok, err := parseLabels("test-container", "test-id", test.labels, nil)
-
-				if ok != test.wantOk {
-					t.Errorf("ok = %v, want %v", ok, test.wantOk)
-				}
-				if err != nil {
-					t.Errorf("err = %v, want nil", err)
 				}
 				if test.wantOk && !reflect.DeepEqual(got, test.wantTarget) {
 					t.Errorf("target = %+v, want %+v", got, test.wantTarget)
